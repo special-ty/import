@@ -1,0 +1,20 @@
+server:
+  port: 9802
+
+spring:
+  application:
+    name: import-demo
+  datasource:
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    # 数据库名 import_demo，先执行 sql/init.sql 建库建表
+    url: jdbc:mysql://127.0.0.1:3306/import_demo?useUnicode=true&characterEncoding=utf8&serverTimezone=Asia/Shanghai&useSSL=false&allowPublicKeyRetrieval=true
+    username: root
+    password: root
+
+mybatis-plus:
+  # 与原项目一致的驼峰映射
+  configuration:
+    map-underscore-to-camel-case: true
+    # 演示项目打印 SQL 便于观察（原项目无此配置）
+    log-impl: org.apache.ibatis.logging.stdout.StdOutImpl
+  mapper-locations: classpath:mapper/**/*.xml

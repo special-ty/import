@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.esgov.yqfk.mapper.SysParamMapper">
+
+    <select id="getCodeByValue" resultType="java.lang.String">
+        SELECT code
+        FROM sys_param
+        WHERE param_type_code = #{paramTypeCode}
+          AND value = #{value}
+          AND status = '1'
+        ORDER BY seq
+        LIMIT 1
+    </select>
+</mapper>

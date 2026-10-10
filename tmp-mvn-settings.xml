@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  临时 Maven settings，仅用于本项目在线构建：
+  用户全局 settings.xml 把 central 镜像到了公司仓库（本机不可达），
+  本文件不配置任何 mirror，让 Maven 直达公共 central 下载公共依赖，
+  本地仓库仍共用 C:/Users/1/.m2/repository（依赖缓存与平时开发一致）。
+  用法：mvn -s tmp-mvn-settings.xml clean package
+-->
+<settings xmlns="http://maven.apache.org/SETTINGS/1.0.0"
+          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+          xsi:schemaLocation="http://maven.apache.org/SETTINGS/1.0.0 http://maven.apache.org/xsd/settings-1.0.0.xsd">
+    <localRepository>C:/Users/1/.m2/repository</localRepository>
+    <offline>false</offline>
+</settings>

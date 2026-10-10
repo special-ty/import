@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.esgov.yqfk.mapper.dc.DcInformationSystemManageMapper">
+
+    <select id="getSystemManageList" resultType="com.esgov.yqfk.entity.dc.DcInformationSystemManage">
+        SELECT
+            sm.id,
+            sm.system_name,
+            sm.system_state,
+            sm.deployment_method,
+            sm.current_affiliated_unit_id,
+            sm.implementation_unit_id,
+            sm.network_access_type,
+            sm.function_description,
+            sm.status,
+            sm.creator,
+            sm.create_time,
+            sm.update_user,
+            sm.update_time
+        FROM
+            dc_information_system_manage sm
+        WHERE
+            sm.status = '1'
+        ORDER BY sm.update_time DESC
+    </select>
+
+    <!-- 原项目 GaussDB 写法是 WHERE "name"=#{name}（双引号标识符），MySQL 下双引号是字符串字面量，必须改裸列名 -->
+    <select id="getOrgCount" resultType="java.lang.Integer">
+        SELECT count(1) FROM sys_org WHERE name = #{name} AND status = '1'
+    </select>
+
+    <select id="getOrgIdByName" resultType="java.lang.String">
+        SELECT id FROM sys_org WHERE name = #{name} AND status = '1' LIMIT 1
+    </select>
+</mapper>
