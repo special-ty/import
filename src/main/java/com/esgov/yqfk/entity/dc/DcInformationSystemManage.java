@@ -5,12 +5,6 @@ import com.baomidou.mybatisplus.annotation.TableName;
 import com.esgov.yqfk.entity.BaseEntity;
 import lombok.Data;
 
-/**
- * 描述: 业务系统管理（照抄原项目 common 模块，去掉 swagger 注解）
- *
- * @author ZhangHao
- * @date 2025-07-16 14:40
- */
 @Data
 @TableName(value = "dc_information_system_manage")
 public class DcInformationSystemManage extends BaseEntity {

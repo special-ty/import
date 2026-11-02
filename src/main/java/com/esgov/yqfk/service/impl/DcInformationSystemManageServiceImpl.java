@@ -15,12 +15,6 @@ import org.springframework.web.multipart.MultipartFile;
 import javax.annotation.Resource;
 import java.util.List;
 
-/**
- * 描述: 业务系统管理服务实现（照抄原项目 importSystem 方法体，去掉用户参数）
- *
- * @author ZhangHao
- * @date 2025-07-16 14:51
- */
 @Service
 @Slf4j
 public class DcInformationSystemManageServiceImpl extends ServiceImpl<DcInformationSystemManageMapper, DcInformationSystemManage> implements IDcInformationSystemManageService {

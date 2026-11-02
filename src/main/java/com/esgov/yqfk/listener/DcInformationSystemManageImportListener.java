@@ -19,12 +19,6 @@ import lombok.extern.slf4j.Slf4j;
 import java.lang.reflect.Field;
 import java.util.*;
 
-/**
- * 描述: 业务系统管理导入监听器（照抄原项目，差异：用户信息硬编码、字典查库）
- *
- * @author ZhangHao
- * @date 2025-07-16 16:37
- */
 @Slf4j
 public class DcInformationSystemManageImportListener extends AnalysisEventListener<DcInformationSystemManageImportVo> {
 
@@ -33,8 +27,6 @@ public class DcInformationSystemManageImportListener extends AnalysisEventListen
 
     private List<DcInformationSystemManageImportVo> importVoList = new ArrayList<>();
 
-    /** systemName -> 库中已有记录id,存在即表示该行走更新 */
-    private Map<String, String> existingIdMap = new HashMap<>();
     /** 本批次已出现的名称,防止Excel内部两行同名都按新增插入 */
     private Set<String> batchNames = new HashSet<>();
 
@@ -140,18 +132,16 @@ public class DcInformationSystemManageImportListener extends AnalysisEventListen
             return sb.toString();
         }
 
-        //校验信息系统名称:已存在则标记为覆盖更新,不存在则校验表格内部是否重名,表格内部重名会整批失败
-        List<DcInformationSystemManage> existList = manageMapper.selectList(
+        //导入只允许新增：库中同名或表格内重名均报错，整份文件不入库，不修改原有数据
+        Integer existCount = manageMapper.selectCount(
                 Wrappers.lambdaQuery(DcInformationSystemManage.class)
                         .eq(DcInformationSystemManage::getStatus, "1")
                         .eq(DcInformationSystemManage::getSystemName, data.getSystemName())
         );
-        if (CollectionUtils.isNotEmpty(existList)) {
-            existingIdMap.put(data.getSystemName(), existList.get(0).getId());
-        } else {
-            if (!batchNames.add(data.getSystemName())) {
-                sb.append("第").append(rowIndex).append("行信息系统名称在表格中重复!");
-            }
+        if (existCount != null && existCount > 0) {
+            sb.append("第").append(rowIndex).append("行信息系统名称已存在!导入只支持新增数据,不能覆盖或修改原有数据;");
+        } else if (!batchNames.add(data.getSystemName())) {
+            sb.append("第").append(rowIndex).append("行信息系统名称在表格中重复!");
         }
 
         //当前所属单位校验,实施单位校验
@@ -169,7 +159,6 @@ public class DcInformationSystemManageImportListener extends AnalysisEventListen
     private void saveBatch() {
         log.info("=======开始进行数据插入工作=========");
         List<DcInformationSystemManage> insertList = new ArrayList<>();
-        List<DcInformationSystemManage> updateList = new ArrayList<>();
         for (DcInformationSystemManageImportVo importVo : importVoList) {
             try {
                 DcInformationSystemManage management = new DcInformationSystemManage();
@@ -181,31 +170,19 @@ public class DcInformationSystemManageImportListener extends AnalysisEventListen
                 management.setCurrentAffiliatedUnitId(manageMapper.getOrgIdByName(importVo.getCurrentAffiliatedUnitId()));
                 management.setImplementationUnitId(manageMapper.getOrgIdByName(importVo.getImplementationUnitId()));
 
-                String existId = existingIdMap.get(importVo.getSystemName());
-                if (StringUtils.isNotBlank(existId)) {
-                    //覆盖更新:复用已有主键,保留原创建信息
-                    management.setId(existId);
-                    management.setUpdateUser(DEFAULT_USER_ID);
-                    management.setUpdateTime(new Date());
-                    updateList.add(management);
-                } else {
-                    management.setId(UUIDUtil.getUUID());
-                    management.setStatus("1");
-                    management.setCreator(DEFAULT_USER_ID);
-                    management.setCreateTime(new Date());
-                    management.setUpdateUser(DEFAULT_USER_ID);
-                    management.setUpdateTime(new Date());
-                    insertList.add(management);
-                }
+                management.setId(UUIDUtil.getUUID());
+                management.setStatus("1");
+                management.setCreator(DEFAULT_USER_ID);
+                management.setCreateTime(new Date());
+                management.setUpdateUser(DEFAULT_USER_ID);
+                management.setUpdateTime(new Date());
+                insertList.add(management);
             } catch (Exception e) {
                 e.printStackTrace();
             }
         }
         if (CollectionUtils.isNotEmpty(insertList)) {
             manageService.saveBatch(insertList);
-        }
-        if (CollectionUtils.isNotEmpty(updateList)) {
-            manageService.updateBatchById(updateList);
         }
     }
 }

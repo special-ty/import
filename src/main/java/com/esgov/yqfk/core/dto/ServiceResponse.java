@@ -4,13 +4,6 @@ import com.esgov.yqfk.core.dto.enums.ResponseCode;
 
 import java.io.Serializable;
 
-/**
- * 描述: 统一返回包装（精简自原项目 common 模块的 ServiceResponse，
- * 去掉 fastjson / requestId 依赖，保留 code/desc/data/message 与工厂方法）
- *
- * @author Yangjinming
- * @create 2018/3/26 21:31
- */
 public class ServiceResponse<T> implements Serializable {
     private static final long serialVersionUID = -4012170306337511959L;
 

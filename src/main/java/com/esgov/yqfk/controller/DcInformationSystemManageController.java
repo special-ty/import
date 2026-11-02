@@ -9,12 +9,6 @@ import org.springframework.web.multipart.MultipartFile;
 import javax.annotation.Resource;
 import java.util.List;
 
-/**
- * 描述: 业务系统管理控制器（照抄原项目，去掉 swagger 注解与用户信息获取）
- *
- * @author ZhangHao
- * @date 2025-07-16 14:49
- */
 @RestController
 @RequestMapping("/system/manage/")
 public class DcInformationSystemManageController {

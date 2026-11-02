@@ -6,10 +6,6 @@ import lombok.Data;
 import java.io.Serializable;
 import java.util.Date;
 
-/**
- * 描述: 实体基类（照抄原项目 common 模块，去掉 swagger 注解）
- * Created by liqiao on 2020/3/15.
- */
 @Data
 public class BaseEntity implements Serializable {
 

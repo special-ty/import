@@ -98,7 +98,7 @@ INSERT INTO sys_param (id, param_type_id, code, value, param_type_code, seq, is_
 ('8ca945311a84418dbe0f1311aa2931c5', '9b2f3cc1a6044f40b77a1a9adf5d20fb', '3', '互联网', 'network_access_type', 3, '', '', '1', '1', NOW(), NOW()),
 ('5080f729f07d443eab7604d0ab50f545', '9b2f3cc1a6044f40b77a1a9adf5d20fb', '4', '其他', 'network_access_type', 4, '', '', '1', '1', NOW(), NOW());
 
--- 存量演示记录：用它演示"同名导入=覆盖更新"（id 不变、creator/create_time 保留）
+-- 存量演示记录：用它演示“同名导入整份拒绝，已有记录保持不变”
 INSERT INTO dc_information_system_manage
 (id, system_name, system_state, deployment_method, current_affiliated_unit_id, implementation_unit_id, network_access_type, function_description, status, creator, create_time, update_user, update_time) VALUES
-('e2c4b6d8f0a24e5f8b1c3d5e7f9a1b2c', '存量演示系统', '1', '0', '-1', '-1', '0', '用于演示导入覆盖更新的存量数据', '1', '1', NOW(), '1', NOW());
+('e2c4b6d8f0a24e5f8b1c3d5e7f9a1b2c', '存量演示系统', '1', '0', '-1', '-1', '0', '用于验证同名导入不修改原有数据', '1', '1', NOW(), '1', NOW());

@@ -17,7 +17,7 @@ Mapper），数据库按需求换成 MySQL，用户信息按需求硬编码，�
 | 版本 | Spring Boot 2.3.12 / MP 3.4.1 / EasyExcel 3.3.2 | 完全一致 |
 
 `DcInformationSystemManageImportListener` 是核心，**逻辑与原项目逐行对应**，
-包括原项目的 upsert 修复（`existingIdMap` + `batchNames` + insert/update 分流）。
+已同步原项目最新的**只新增**规则：库内同名或批内重名整份拒绝，不覆盖、不修改已有系统。
 
 ## 目录结构
 
@@ -27,7 +27,8 @@ import/
 ├── sql/init.sql                         # 建库建表 + 字典/单位/存量演示数据
 ├── docs/
 │   ├── 信息系统管理导入模版.xlsx          # 空模板（表头与 @ExcelProperty 严格一致）
-│   └── 示例导入数据.xlsx                 # 两行示例：覆盖更新 + 新增
+│   ├── 示例导入数据.xlsx                 # 两行全新增示例
+│   └── 同名拒绝示例.xlsx                 # 合法新增后遇到库内同名，整份拒绝
 └── src/main/
     ├── java/com/esgov/yqfk/
     │   ├── ImportApplication.java
@@ -63,32 +64,41 @@ import/
    产物 `target/import-demo-1.0-SNAPSHOT.jar`（可执行 fat jar）。
 4. **启动**：`java -jar target/import-demo-1.0-SNAPSHOT.jar`，或 IDEA 直接 Run `ImportApplication`。
    启动后 `http://127.0.0.1:9802`。
-4. **导入测试**（Postman / curl）：
+5. **导入测试**（Postman / curl）：
 
    ```
    POST http://127.0.0.1:9802/system/manage/importSystem
    form-data: file=<选择 docs/示例导入数据.xlsx>
    ```
 
-   - 第 1 行"存量演示系统"已存在于种子数据 → **覆盖更新**：主键不变、
-     创建人/创建时间保留、六个业务字段刷新、`update_time` 更新；
-   - 第 2 行"新增演示系统"不存在 → **新增**：新 UUID、`status=1`。
-5. **看结果**：`GET http://127.0.0.1:9802/system/manage/getSystemManageList`（控制台会打印 SQL）。
+   - 两行均为新系统 → **新增**：各自生成 UUID、`status=1`、审计用户为 `1`。
+   - 再次导入同一文件 → 名称已存在，整份拒绝，已有数据保持不变。
+   - 导入 `docs/同名拒绝示例.xlsx`：第一行合法新增、第二行与种子数据“存量演示系统”同名，
+     **两行均不入库**，存量数据不变（需已初始化种子数据）。
+6. **看结果**：`GET http://127.0.0.1:9802/system/manage/getSystemManageList`（控制台会打印 SQL）。
 
 ## 导入规则（与原项目一致）
 
 - **文件格式**：仅 `.xlsx`/`.xls`（扩展名精确匹配，大小写敏感）。
 - **表头校验**：前 7 列必须与模板完全一致（反射读 `@ExcelProperty` 动态比对），不一致整批报错。
-- **必填校验**：7 列均必填，错误信息带 Excel 行号（如"第2行功能描述不能为空!"）。
-- **查重**：按 `system_name` + `status='1'` 查库，已存在 → 更新；不存在但在本表格内出现两次 → 整批失败。
+- **必填校验**：7 列均必填，错误信息带行索引（沿用原项目 `getRowIndex()`，从 0 开始，首条数据报“第1行”）。
+- **查重**：按 `system_name` + `status='1'` 查库，已存在 → 报“导入只支持新增数据,不能覆盖或修改原有数据”，整份拒绝；表格内部重名也整份拒绝。软删除记录（`status='0'`）不参与库内查重。
 - **单位**：填单位**中文名**（如"广州市机构"），落库前转单位 id；填了不存在的名字 → 报错并中止。
 - **字典**：状态/部署方式/接入网络类型填**中文值**（如"已建""县区部署""政务内网"），落库前转字典码。
 - 任一行校验失败（EasyExcel 默认 throw）→ **整批不落库**，返回错误信息。
 
-## 从原项目继承的已知缺陷（简历面试素材）
+## 隔离测试代码（暂未执行）
+
+`src/test/java/com/esgov/yqfk/ImportSystemTest.java` 使用真实 EasyExcel 解析和 Service/Listener，
+以 Mockito 隔离 Mapper、字典及持久化 Service，不需要 MySQL。
+覆盖新增与审计/码值转换、库内同名整份拒绝、批内重复、必填、单位、表头、扩展名及仅表头文件。
+新增依赖仅限 test 范围。源码与测试代码已编译；测试因本地缺少 `surefire-junit4:2.21.0` 未能启动，
+按要求不继续测试，未连接 MySQL、未执行初始化 SQL。后续需要时可运行 `mvn -s tmp-mvn-settings.xml test`。
+
+## 从原项目继承的已知缺陷
 
 1. 落库循环里 `catch(Exception){ e.printStackTrace(); }` 会**静默跳过单行**，接口仍返回"导入成功"；
-2. `saveBatch`/`updateBatchById` 之间**无事务**，insert 成功 + update 失败时数据不一致（监听器 new 出来，`@Transactional` 也不生效）；
+2. 监听器自行 `new`，给监听器加 `@Transactional` 不生效；当前只调用一次 Service 的 `saveBatch`（MP 的事务边界），不再存在新增/更新两个批次之间的事务问题；
 3. 异常信息 `e.getMessage()` 直接透传给前端；
 4. 逐行 3 次 SQL 查库（查重 + 两个单位查询），无预加载；
 5. 应用层查重，无数据库唯一约束，并发下可插入同名数据。

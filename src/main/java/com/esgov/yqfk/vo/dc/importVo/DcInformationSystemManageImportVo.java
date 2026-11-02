@@ -8,9 +8,6 @@ import java.io.Serializable;
 /**
  * 描述: 业务系统管理导入 VO（照抄原项目 common 模块，去掉 swagger 注解）
  * 注意: 字段顺序 = Excel 列顺序，@ExcelProperty 的 index 必须与模板一致
- *
- * @author ZhangHao
- * @date 2025-07-16 16:42
  */
 @Data
 public class DcInformationSystemManageImportVo implements Serializable {

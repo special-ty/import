@@ -8,9 +8,6 @@ import org.springframework.stereotype.Component;
 /**
  * 描述: 从 Spring 容器取 bean 的工具（照抄原项目 common 模块）。
  * EasyExcel 的监听器是 new 出来的、不受容器管理，靠它拿单例 Mapper/Service。
- *
- * @author: liujiarong
- * @Date：2018/8/1 15:17
  **/
 @Component
 public class SpringContextUtil implements ApplicationContextAware {
